@@ -94,6 +94,7 @@ const IFLA_NEW_IFINDEX: u16 = 49;
 const IFLA_MIN_MTU: u16 = 50;
 const IFLA_MAX_MTU: u16 = 51;
 const IFLA_PROP_LIST: u16 = 52;
+const IFLA_ALT_IFNAME: u16 = 53;
 const IFLA_PERM_ADDRESS: u16 = 54;
 const IFLA_PROTO_DOWN_REASON: u16 = 55;
 
@@ -134,6 +135,7 @@ pub enum LinkAttribute {
     /// information as the ethtool ioctl interface.
     PermAddress(Vec<u8>),
     IfName(String),
+    AltIfName(String),
     Qdisc(String),
     IfAlias(String),
     PhysPortName(String),
@@ -193,6 +195,7 @@ impl Nla for LinkAttribute {
             Self::IfName(string)
             | Self::Qdisc(string)
             | Self::IfAlias(string)
+            | Self::AltIfName(string)
             | Self::PhysPortName(string) => string.len() + 1,
 
             Self::Mode(_) => 1,
@@ -257,6 +260,7 @@ impl Nla for LinkAttribute {
             Self::IfName(string)
             | Self::Qdisc(string)
             | Self::IfAlias(string)
+            | Self::AltIfName(string)
             | Self::PhysPortName(string) => {
                 buffer[..string.len()].copy_from_slice(string.as_bytes());
                 buffer[string.len()] = 0;
@@ -331,6 +335,7 @@ impl Nla for LinkAttribute {
             Self::Broadcast(_) => IFLA_BROADCAST,
             Self::PermAddress(_) => IFLA_PERM_ADDRESS,
             Self::IfName(_) => IFLA_IFNAME,
+            Self::AltIfName(_) => IFLA_ALT_IFNAME,
             Self::Qdisc(_) => IFLA_QDISC,
             Self::IfAlias(_) => IFLA_IFALIAS,
             Self::PhysPortName(_) => IFLA_PHYS_PORT_NAME,
@@ -513,6 +518,9 @@ impl<'a, T: AsRef<[u8]> + ?Sized>
             // String
             IFLA_IFNAME => Self::IfName(
                 parse_string(payload).context("invalid IFLA_IFNAME value")?,
+            ),
+            IFLA_ALT_IFNAME => Self::AltIfName(
+                parse_string(payload).context("invalid IFLA_ALT_IFNAME value")?,
             ),
             IFLA_QDISC => Self::Qdisc(
                 parse_string(payload).context("invalid IFLA_QDISC value")?,
